@@ -8,8 +8,8 @@ app = FastAPI()
 OPENAI_API_KEY = "sk-proj-FvTMBN2tJOJaeQN6JNZaT3BlbkFJX7iYFEUtxiAOofF6YURj"
 openai.api_key = OPENAI_API_KEY
 
-# 정답 설정 (여기서는 예시로 "사자"를 사용)
-ANSWER = "사자"
+# 정답 설정, 최대 질문 개수 설정
+ANSWER = ""
 MAX_QUESTIONS = 20
 
 # 게임 상태를 유지하기 위한 변수
@@ -34,7 +34,7 @@ def generate_word(category: str, difficulty: str) -> str:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=10
+            max_tokens=50
         )
         return response.choices[0].message['content'].strip()
     except openai.OpenAIError as e:
@@ -46,7 +46,7 @@ def get_chatgpt_response(prompt: str) -> str:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=10
+            max_tokens=100
         )
         return response.choices[0].message['content'].strip()
     except openai.OpenAIError as e:
