@@ -32,14 +32,9 @@ let GameStart: React.FC = () => {
     useEffect(() => {
         const fetchGameWord = async () => {
             try {
-                const response = await fetch('http://127.0.0.1:8000/start_game', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ category: category, difficulty: difficulty }),
-                });    
-                console.log('여기까지');
+                const response = await fetch(`http://127.0.0.1:8000/start_game?category=${category}&difficulty=${difficulty}`, {
+                    method: 'GET',
+                });
                 const data = await response.json();
                 setGameWord(data.word); // 서버로부터 받은 단어 설정
             } catch (error) {
@@ -62,14 +57,9 @@ let GameStart: React.FC = () => {
 
             // ChatGPT 이용하여 답변 받아오기
             try {
-                const response = await fetch('http://127.0.0.1:8000/ask', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type' : 'application/json',
-                    },
-                    body: JSON.stringify( {question: currentQuestion} ),
+                const response = await fetch(`http://127.0.0.1:8000/ask?question=${currentQuestion}&word=${gameWord}`, {
+                    method: 'GET',
                 });
-
                 const data = await response.json();
                 const answer = data.answer;
 
@@ -95,19 +85,6 @@ let GameStart: React.FC = () => {
             setIsRight(false);
         }
         setIsGameOver(true);
-        try {
-            const response = await fetch('http://localhost:8000/reset', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            const data = await response.json();
-            console.log(data.message);  // 백엔드 응답 메시지 로그 출력
-        } catch (error) {
-            console.error('Error:', error);
-        }
     };
     
     // 게임 끝난 후 출력할 내용 결정

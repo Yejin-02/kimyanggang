@@ -27,8 +27,8 @@ let Home: React.FC = () => {
                 <label>
                     난이도:
                     <select ref={diffRef} id="difficulty" name="difficulty">
-                        <option value="쉬움">일반 모드</option>
-                        <option value="어려움">하드 모드</option>
+                        <option value="쉬운">일반 모드</option>
+                        <option value="어려운">하드 모드</option>
                     </select>
                 </label>
                 <br />
