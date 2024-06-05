@@ -5,7 +5,7 @@ import openai
 app = FastAPI()
 
 # OpenAI API 키 설정
-OPENAI_API_KEY = "sk-proj-splDaEoJcS7H2GdCNxt9T3BlbkFJuAwvCLjCe8CoIVwZApkT"
+OPENAI_API_KEY = ""
 openai.api_key = OPENAI_API_KEY
 
 # 정답 설정, 최대 질문 개수 설정
