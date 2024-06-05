@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  web:
+    image: myimage
+    build: .
+    ports:
+      - "80:80"
+    environment:
+      - OPENAI_API_KEY= sk-proj-splDaEoJcS7H2GdCNxt9T3BlbkFJuAwvCLjCe8CoIVwZApkT
+    volumes:
+      - .:/app
