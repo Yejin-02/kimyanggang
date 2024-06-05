@@ -69,21 +69,30 @@ let GameStart: React.FC = () => {
                 setAnswers([...answers, 'not sure']);
             }
             setCurrentQuestion('');
-        } else {
-            setIsGameOver(true); // 20개 넘어서부터는 게임 종료
         }
     };
     
     // 단어 제출 버튼 클릭 -> 단어 제출 관리
     const handleGuessSubmit = async () => {
-        // user의 Guess와 game의 Word가 같은지 체크 -> Result 메세지 관리
-        if (userGuess.trim().toLowerCase() === gameWord.toLowerCase()) {
-            setResult('맞췄습니다! 정답은 ' + gameWord + '였습니다.');
-            setIsRight(true);
-        } else {
-            setResult('틀렸습니다! 정답은 ' + gameWord + '였습니다.');
+        // ChatGPT 이용하여 정답 여부 체크
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/ask?guess=${userGuess}&word=${gameWord}&category=${category}`, {
+                method: 'GET',
+            });
+            const data = await response.json();
+            setIsRight(data.answer);
+        } catch (error) {
+            console.error('Error fetching answer: ', error);
             setIsRight(false);
         }
+
+        // isRight에 따라 Result 메세지 관리
+        if (isRight) {
+            setResult('맞췄습니다! 정답은 ' + gameWord + '였습니다.');
+        } else {
+            setResult('틀렸습니다! 정답은 ' + gameWord + '였습니다.');
+        }
+        
         setIsGameOver(true);
     };
     
@@ -91,7 +100,7 @@ let GameStart: React.FC = () => {
     if (isGameOver) {
         return (
             <div>
-                {isRight ? <h1>Congratulations!</h1> : <h1>Game Over</h1>}
+                <h1>Game end</h1>
                 <p>{result}</p>
             </div>
         );
@@ -99,13 +108,13 @@ let GameStart: React.FC = () => {
 
     return (
         <div className="GameStart">
+            <p>{gameWord}</p>
             <div className="wrap">
                 <div className="GameState">
                     <h2>게임 상태</h2>
                     <p>난이도: {difficulty}</p>
                     <p>분류: {category}</p>
                     <p>남은 기회: {21-questionsAsked}</p>
-                    <p>단어: {gameWord}</p>
                 </div>
             </div>
             <br />
