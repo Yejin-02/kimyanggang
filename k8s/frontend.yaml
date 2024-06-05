@@ -20,7 +20,7 @@ spec:
       containers:
         - name: server
           # TODO(user): change to your image
-          image: yangyj21/mobile-exp-frontend:v0.2
+          image: yangyj21/mobile-exp-frontend:v0.3
           env:
             - name: FRONTEND_CLIENT__BASE_URL
               value: http://backend:8000
