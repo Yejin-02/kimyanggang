@@ -1,41 +1,24 @@
-# Configure metadata
-ARG POETRY_VERSION="1.3.2"
-ARG PYTHON_VERSION="3.12"
-ARG PYTHON_DIST="bookworm"
+# Use the official Python image from the Docker Hub
+FROM python:3.10-slim
 
-# --- builder ----
-FROM "docker.io/library/python:${PYTHON_VERSION}-${PYTHON_DIST}" as builder
-
-# Configure poetry environment variables
-ARG POETRY_CACHE_DIR=/tmp/poetry_cache
-ENV POETRY_NO_INTERACTION=1
-ARG POETRY_VERSION
-ENV POETRY_VIRTUALENVS_CREATE=1
-ENV POETRY_VIRTUALENVS_IN_PROJECT=1
-
-# Install poetry
-RUN pip install --no-cache-dir "poetry==${POETRY_VERSION}"
-
-# Load package metadata
+# Set the working directory in the container
 WORKDIR /app
 
-COPY pyproject.toml ./
+# Copy the requirements file into the container
+COPY pyproject.toml .
 
-# Install package dependencies
-RUN --mount=type=cache,target=${POETRY_CACHE_DIR} \
-    poetry install --no-root --without dev
+# Install poetry package manager
+RUN pip install poetry
 
-# --- runtime ----
-FROM "docker.io/library/python:${PYTHON_VERSION}-slim-${PYTHON_DIST}" as runtime
+# Install dependencies
+RUN poetry config virtualenvs.create false
+RUN poetry install --no-dev
 
-# Configure entrypoint
-ENTRYPOINT ["/usr/bin/env"]
-CMD [ "fastapi", "run", "main.py" ]
+# Copy the rest of the application code
+COPY . .
 
-# Configure runtime environment variables
-ENV PATH="/app/.venv/bin:${PATH}"
+# Expose the port the app runs on
+EXPOSE 8000
 
-# Load package source codes
-WORKDIR /app
-COPY --from=builder /app/.venv .venv
-ADD ./ .
+# Run the application
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

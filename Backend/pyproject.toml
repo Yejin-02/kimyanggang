@@ -1,39 +1,21 @@
 [tool.poetry]
-name = "mobilex-exp-backend"
+name = "fastapi-app"
 version = "0.1.0"
-description = "MobileX Experience Lab Project - Backend"
-authors = ["Sangyu Lee <me@sangyul.ee>", "Ho Kim <ho.kim@smartx.kr>"]
-readme = "README.md"
-repository = "https://github.com/HoKim98/mobilex-exp/tree/main/Backend"
-include = ["./prompts/*.txt"]
-
-[[tool.poetry.packages]]
-include = "./llm/**/*.py"
-
-[[tool.poetry.packages]]
-include = "./models/**/*.py"
-
-[[tool.poetry.packages]]
-include = "./routers/**/*.py"
-
-[[tool.poetry.packages]]
-include = "./0_Home.py"
+description = "A FastAPI application"
+authors = ["Your Name <you@example.com>"]
 
 [tool.poetry.dependencies]
-fastapi = "*"
-gunicorn = "*"
-json-repair = { version = "*" }
-langchain = { version = "*" }
-langchain-chroma = { version = "*" }
-langchain-experimental = { version = "*" }
-langchain-community = { version = "*" }
-langchain-openai = { version = "*" }
-langchainhub = { version = "*" }
-neo4j = { version = "*" }
-python = ">=3.12,<3.13"
-python-dotenv = { version = "*" }
+python = "^3.10"
+fastapi = "^0.95.2"
+uvicorn = "^0.18.3"
+pydantic = "^1.10.6"
+openai = "^0.27.0"
+aiofiles = "^23.2.1"
+requests = "^2.28.2"
 
+[tool.poetry.dev-dependencies]
+pytest = "^7.2.0"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
