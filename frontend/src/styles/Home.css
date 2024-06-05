@@ -1,0 +1,51 @@
+.Home {
+    width: 90%;
+    margin: 0 auto;
+    text-align: left; /* 안내문 왼쪽 정렬 */
+}
+
+.Home p {
+    font-size: 1.2em; /* 글자 크기 조정 */
+    line-height: 1.5; /* 행 간격 조정 */
+    margin-bottom: 10px; /* 문단 간 여백 */
+}
+
+.Home form {
+    margin-top: 20px; /* 폼 위쪽 여백 */
+    background-color: #f9f9f9; /* 폼 배경색 */
+    padding: 20px; /* 폼 내부 여백 */
+    border-radius: 8px; /* 폼 테두리 반경 */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 폼 그림자 효과 */
+}
+
+.Home label {
+    display: block; /* 레이블 블록 요소로 변경 */
+    margin-bottom: 10px; /* 레이블 아래 여백 */
+    font-weight: bold; /* 레이블 글자 굵게 */
+}
+
+.Home select {
+    width: 100%; /* 셀렉트 박스 너비 100% */
+    padding: 8px; /* 셀렉트 박스 내부 여백 */
+    margin-top: 5px; /* 셀렉트 박스 위쪽 여백 */
+    border: 1px solid #ccc; /* 셀렉트 박스 테두리 */
+    border-radius: 4px; /* 셀렉트 박스 테두리 반경 */
+    font-size: 1em; /* 셀렉트 박스 글자 크기 */
+}
+
+.Home button {
+    display: block; /* 버튼 블록 요소로 변경 */
+    width: 100%; /* 버튼 너비 100% */
+    padding: 10px; /* 버튼 내부 여백 */
+    margin-top: 20px; /* 버튼 위쪽 여백 */
+    background-color: #4CAF50; /* 버튼 배경색 */
+    color: white; /* 버튼 글자색 */
+    border: none; /* 버튼 테두리 제거 */
+    border-radius: 4px; /* 버튼 테두리 반경 */
+    font-size: 1.2em; /* 버튼 글자 크기 */
+    cursor: pointer; /* 커서 포인터 모양 */
+}
+
+.Home button:hover {
+    background-color: #45a049; /* 버튼에 마우스를 올렸을 때 배경색 변경 */
+}
