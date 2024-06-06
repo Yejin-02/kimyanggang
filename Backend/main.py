@@ -6,16 +6,16 @@ import os
 import logging
 
 # 설정된 루트 경로와 문서 경로를 로깅하기 위한 설정
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-root_path = os.environ.get('BASE_URL', '')
+root_path = "/api/v1"
 
 app = FastAPI(
     root_path=root_path,
-    docs_url="/docs",  # Swagger UI 경로
-    redoc_url="/redoc",  # ReDoc 경로
-    openapi_url="/openapi.json"  # OpenAPI 스키마 경로
+    docs_url=f"{root_path}/docs",  # Swagger UI 경로
+    redoc_url=f"{root_path}/redoc",  # ReDoc 경로
+    openapi_url=f"{root_path}/openapi.json"  # OpenAPI 스키마 경로
 )
 
 # 앱이 시작될 때 로그 메시지를 출력합니다.
@@ -47,6 +47,7 @@ def generate_word(category: str, difficulty: str) -> str:
         result = response.choices[0].message['content']
         return result
     except openai.OpenAIError as e:
+        logger.error(f"Error generating word: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # ChatGPT API 호출 함수
@@ -59,11 +60,13 @@ def get_chatgpt_response(prompt: str) -> str:
         )
         return response.choices[0].message['content'].strip()
     except openai.OpenAIError as e:
+        logger.error(f"Error getting ChatGPT response: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # 게임 시작 엔드포인트 정의
 @app.get("/start_game")
 async def start_game(category: str = Query(...), difficulty: str = Query(...)):
+    logger.debug(f"start_game called with category: {category}, difficulty: {difficulty}")
     word = generate_word(category, difficulty)
     return {"message": "Game started", "category": category, "difficulty": difficulty, "word": word}
 
@@ -71,27 +74,33 @@ async def start_game(category: str = Query(...), difficulty: str = Query(...)):
 @app.get("/ask", response_model=dict)
 async def ask_question(question: str = Query(...), word: str = Query(...)):
     try:
+        logger.debug(f"ask_question called with question: {question}, word: {word}")
         prompt = f"'{word}'에 대한 질문: '{question}'. 예 아니오로만 대답해줘."
         answer = get_chatgpt_response(prompt)
         return {"word": word, "question": question, "answer": answer }
     except HTTPException as e:
+        logger.error(f"HTTPException in ask_question: {str(e)}")
         raise e
     except Exception as e:
+        logger.error(f"Exception in ask_question: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # 정답 엔드포인트 정의
 @app.get("/guess", response_model=dict)
 async def guess_answer(guess: str = Query(...), word: str = Query(...), category: str = Query(...)):
     try:
+        logger.debug(f"guess_answer called with guess: {guess}, word: {word}, category: {category}")
         prompt = f"{guess}와 {word}가 동일한 {category}라고 생각해? 정확히 true 또는 false 둘 중 하나만 반환해."
         answer = get_chatgpt_response(prompt)
         return { "answer": answer }
     except HTTPException as e:
+        logger.error(f"HTTPException in guess_answer: {str(e)}")
         raise e
     except Exception as e:
+        logger.error(f"Exception in guess_answer: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # FastAPI 서버를 실행하는 부분
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="debug")

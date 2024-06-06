@@ -20,7 +20,7 @@ spec:
       containers:
         - name: server
           # TODO(user): change to your image
-          image: yangyj21/mobile-exp-backend:j0.10
+          image: yangyj21/mobile-exp-backend:j0.13
           env:
             - name: BASE_URL
               value: /api/v1
