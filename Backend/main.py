@@ -5,6 +5,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
+OPENAI_API_KEY = "API_KEY_HERE"
+openai.api_key = OPENAI_API_KEY
+
 # CORS 설정
 app.add_middleware(
     CORSMiddleware,
@@ -13,8 +16,43 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# 단어 유효성 검사 함수
+def is_valid_word(word: str, category: str) -> bool:
+    # GPT를 통해 단어 유효성을 검증
+    prompt = f"'{word}'가 다음 세 가지 조건을 모두 만족하면 '예', 그렇지 않으면 '아니오'로 대답해줘: 첫째, '{word}'는 한 단어이다. 둘째, '{word}'는 실제로 존재하는 단어이다. 셋째, '{word}'는 '{category}' 중 하나이다."
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=50
+        )
+        answer = response.choices[0].message['content'].strip().lower()
+        return answer == "예" or answer == "yes"
+    except openai.OpenAIError as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # 단어 생성 모델 호출 함수
+def generate_word(category: str, difficulty: str) -> str:
+    attempt = 0
+    max_attempts = 5
+    while attempt < max_attempts:
+        try:
+            prompt = f"임의로 단어를 하나 골라줘. 이 두 가지 조건을 만족하는 단어여야 해: 첫째, '{category}'중 하나여야 해. 둘째, 난이도는 '{difficulty}'이야. 난이도가 '쉬운' 일 경우 유명한 단어여야 해. 난이도가 '어려운'일 경우 유명하지 않은 단어여야 해. 정확히 한 단어만 골라서 단답식으로 대답해줘."
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=300
+            )
+            word = response.choices[0].message['content'].strip()
+            if is_valid_word(word, category):
+                return word
+        except openai.OpenAIError as e:
+            raise HTTPException(status_code=500, detail=str(e))
+        attempt += 1
+    raise HTTPException(status_code=500, detail="Valid word could not be generated after multiple attempts")
+
+
+"""
 def generate_word(category: str, difficulty: str) -> str:
     try:
         prompt = f"단어를 추측해 봐. 단어에 대해서 두 가지 정보를 알려줄 거야. 첫째로 category는 단어의 범주이다. 영화제목, 동식물, 노래제목, 여행지, 음식메뉴, 사물 중에 하나이다. 둘째로 difficulty는 쉬운, 어려운 중에 하나이다. 쉬운 단어는 한국 사람들이 자주 사용하는 단어이고 어려운 단어는 한국 사람들이 잘 알지 못하는 단어이다. 이제 정보를 알려줄게. 단어의 category는 {category}이고 단어의 difficulty는 {difficulty}야. 이 단어는 무엇일까? 정확히 단어만 출력해."
@@ -28,6 +66,7 @@ def generate_word(category: str, difficulty: str) -> str:
         return result
     except openai.OpenAIError as e:
         raise HTTPException(status_code=500, detail=str(e))
+"""
 
 # ChatGPT API 호출 함수
 def get_chatgpt_response(prompt: str) -> str:
