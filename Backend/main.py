@@ -3,13 +3,28 @@ from pydantic import BaseModel
 import openai
 from fastapi.middleware.cors import CORSMiddleware
 import os
-import dotenv
+import logging
 
-dotenv.load_dotenv()
+# 설정된 루트 경로와 문서 경로를 로깅하기 위한 설정
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+root_path = os.environ.get('BASE_URL', '')
 
 app = FastAPI(
-    root_path=os.environ.get('BASE_URL', ''),
+    root_path=root_path,
+    docs_url="/docs",  # Swagger UI 경로
+    redoc_url="/redoc",  # ReDoc 경로
+    openapi_url="/openapi.json"  # OpenAPI 스키마 경로
 )
+
+# 앱이 시작될 때 로그 메시지를 출력합니다.
+@app.on_event("startup")
+async def startup_event():
+    logger.info(f"Root path is set to: {root_path}")
+    logger.info(f"Swagger UI is available at: {root_path}/docs")
+    logger.info(f"ReDoc is available at: {root_path}/redoc")
+    logger.info(f"OpenAPI schema is available at: {root_path}/openapi.json")
 
 # CORS 설정
 app.add_middleware(
@@ -24,7 +39,6 @@ app.add_middleware(
 def generate_word(category: str, difficulty: str) -> str:
     try:
         prompt = f"단어를 추측해 봐. 단어에 대해서 두 가지 정보를 알려줄 거야. 첫째로 category는 단어의 범주이다. 영화제목, 동식물, 노래제목, 여행지, 음식메뉴, 사물 중에 하나이다. 둘째로 difficulty는 쉬운, 어려운 중에 하나이다. 쉬운 단어는 한국 사람들이 자주 사용하는 단어이고 어려운 단어는 한국 사람들이 잘 알지 못하는 단어이다. 이제 정보를 알려줄게. 단어의 category는 {category}이고 단어의 difficulty는 {difficulty}야. 이 단어는 무엇일까? 정확히 단어만 출력해."
-#        prompt = f"category는 단어의 범주로, 영화 제목, 동식물, 지역 이름, 음식 메뉴, 사물 중에 하나이다. difficulty는 단어의 난이도로, 쉬운(한국 사람들이 잘 아는), 어려운(한국 사람들이 잘 모르는) 중에 하나이다. 단어의 category는 {category}이고 단어의 difficulty는 {difficulty}일 때, {category} 범주에 속하는 {difficulty} 하나의 단어를 생성해라. 이때 단어가 실존하는 단어인지, 한국어 단어인지, {category} 범주에 분류될 수 있는 단어인지, {difficulty} 단어인지 천천히 고심하여야 한다. 또한, 해당 단어 외에 어떤 것도 출력해서는 안 된다. 강조한다. 해당 단어 외에는 그 어떤 것도 출력되어서는 안 된다."
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
