@@ -1,12 +1,17 @@
 from fastapi import FastAPI, HTTPException, Query, Form
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import openai
-from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
+# OpenAI API 키 설정
 OPENAI_API_KEY = "API_KEY_HERE"
 openai.api_key = OPENAI_API_KEY
+
+# 정답 설정, 최대 질문 개수 설정
+ANSWER = ""
+MAX_QUESTIONS = 20
 
 # CORS 설정
 app.add_middleware(
@@ -16,6 +21,19 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ChatGPT API 호출 함수
+def get_chatgpt_response(prompt: str) -> str:
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=100
+        )
+        return response.choices[0].message['content'].strip()
+    except openai.OpenAIError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # 단어 유효성 검사 함수
 def is_valid_word(word: str, category: str) -> bool:
     # GPT를 통해 단어 유효성을 검증
@@ -34,14 +52,14 @@ def is_valid_word(word: str, category: str) -> bool:
 # 단어 생성 모델 호출 함수
 def generate_word(category: str, difficulty: str) -> str:
     attempt = 0
-    max_attempts = 5
+    max_attempts = 20
     while attempt < max_attempts:
         try:
             prompt = f"임의로 단어를 하나 골라줘. 이 두 가지 조건을 만족하는 단어여야 해: 첫째, '{category}'중 하나여야 해. 둘째, 난이도는 '{difficulty}'이야. 난이도가 '쉬운' 일 경우 유명한 단어여야 해. 난이도가 '어려운'일 경우 유명하지 않은 단어여야 해. 정확히 한 단어만 골라서 단답식으로 대답해줘."
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=300
+                max_tokens=500
             )
             word = response.choices[0].message['content'].strip()
             if is_valid_word(word, category):
@@ -50,7 +68,6 @@ def generate_word(category: str, difficulty: str) -> str:
             raise HTTPException(status_code=500, detail=str(e))
         attempt += 1
     raise HTTPException(status_code=500, detail="Valid word could not be generated after multiple attempts")
-
 
 """
 def generate_word(category: str, difficulty: str) -> str:
@@ -68,38 +85,26 @@ def generate_word(category: str, difficulty: str) -> str:
         raise HTTPException(status_code=500, detail=str(e))
 """
 
-# ChatGPT API 호출 함수
-def get_chatgpt_response(prompt: str) -> str:
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=100
-        )
-        return response.choices[0].message['content'].strip()
-    except openai.OpenAIError as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
 # 게임 시작 엔드포인트 정의
-@app.get("/start_game")
+@app.get("/api/v1/start_game")
 async def start_game(category: str = Query(...), difficulty: str = Query(...)):
     word = generate_word(category, difficulty)
     return {"message": "Game started", "category": category, "difficulty": difficulty, "word": word}
 
 # 질문 엔드포인트 정의
-@app.get("/ask", response_model=dict)
+@app.get("/api/v1/ask", response_model=dict)
 async def ask_question(question: str = Query(...), word: str = Query(...)):
     try:
         prompt = f"'{word}'에 대한 질문: '{question}'. 예 아니오로만 대답해줘."
         answer = get_chatgpt_response(prompt)
-        return {"word": word, "question": question, "answer": answer }
+        return {"question": question, "answer": answer}
     except HTTPException as e:
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# 정답 엔드포인트 정의
-@app.get("/guess", response_model=dict)
+# 정답 맞추기 엔드포인트 정의
+@app.get("/api/v1/guess", response_model=dict)
 async def guess_answer(guess: str = Query(...), word: str = Query(...), category: str = Query(...)):
     try:
         prompt = f"{guess}와 {word}가 동일한 {category}라고 생각해? 정확히 true 또는 false 둘 중 하나만 반환해."
@@ -109,6 +114,7 @@ async def guess_answer(guess: str = Query(...), word: str = Query(...), category
         raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 # FastAPI 서버를 실행하는 부분
 if __name__ == "__main__":
