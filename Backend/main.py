@@ -2,8 +2,14 @@ from fastapi import FastAPI, HTTPException, Query, Form
 from pydantic import BaseModel
 import openai
 from fastapi.middleware.cors import CORSMiddleware
+import os
+import dotenv
 
-app = FastAPI()
+dotenv.load_dotenv()
+
+app = FastAPI(
+    root_path=os.environ.get('BASE_URL', ''),
+)
 
 # CORS 설정
 app.add_middleware(
