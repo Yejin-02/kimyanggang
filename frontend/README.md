@@ -1,4 +1,5 @@
 ## Debug on my Local machine
+cd frontend
 npm start
 
 ## Build a Container image

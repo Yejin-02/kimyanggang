@@ -1,16 +1,38 @@
 import { useNavigate } from "react-router-dom";
-import React, { FormEvent, useRef } from "react";
+import React, { FormEvent, useRef, useState } from "react";
 import './../styles/Home.css';
 
 let Home: React.FC = () => {
     const navigate = useNavigate();
-    
-    const handleSubmit = (event: FormEvent) => {
+    const [loading, setLoading] = useState(false); // 로딩 상태를 관리하는 state
+
+    const handleSubmit = async (event: FormEvent) => {
         event.preventDefault();
+
         if(diffRef.current && cateRef.current) {
             const difficulty = diffRef.current.value;
             const category = cateRef.current.value;
-            navigate('/gamestart', { state: { difficulty, category } });
+
+            setLoading(true); // 로딩 시작
+            
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/start_game?category=${category}&difficulty=${difficulty}`, {
+                    method: 'GET',
+                });
+                const data = await response.json();// 서버로부터 받은 단어 설정
+                console.log(data.word);
+                if (data.word) {
+                    const gameWord = data.word;
+                    navigate('/gamestart', { state: { difficulty, category, gameWord } });
+                } else {
+                    // gameWord가 undefined이거나 null인 경우
+                    console.error('Game word is undefined or null');
+                }
+            } catch (error) {
+                console.error('Error fetching game word:', error);
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
@@ -45,7 +67,11 @@ let Home: React.FC = () => {
                 <br />
                 <button type="submit">Game Start</button>
             </form>
-
+            {loading && <div className="modal-overlay">
+                            <div className="modal-content">
+                                <p>Loading...</p>
+                            </div>
+                        </div>}
         </div>
     );
 }

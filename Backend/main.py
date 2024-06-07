@@ -6,12 +6,8 @@ import openai
 app = FastAPI()
 
 # OpenAI API 키 설정
-OPENAI_API_KEY = "API_KEY_HERE"
+OPENAI_API_KEY = "oepn-api-key"
 openai.api_key = OPENAI_API_KEY
-
-# 정답 설정, 최대 질문 개수 설정
-ANSWER = ""
-MAX_QUESTIONS = 20
 
 # CORS 설정
 app.add_middleware(
@@ -86,13 +82,13 @@ def generate_word(category: str, difficulty: str) -> str:
 """
 
 # 게임 시작 엔드포인트 정의
-@app.get("/api/v1/start_game")
+@app.get("/start_game")
 async def start_game(category: str = Query(...), difficulty: str = Query(...)):
     word = generate_word(category, difficulty)
     return {"message": "Game started", "category": category, "difficulty": difficulty, "word": word}
 
 # 질문 엔드포인트 정의
-@app.get("/api/v1/ask", response_model=dict)
+@app.get("/ask", response_model=dict)
 async def ask_question(question: str = Query(...), word: str = Query(...)):
     try:
         prompt = f"'{word}'에 대한 질문: '{question}'. 예 아니오로만 대답해줘."
@@ -104,10 +100,10 @@ async def ask_question(question: str = Query(...), word: str = Query(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 # 정답 맞추기 엔드포인트 정의
-@app.get("/api/v1/guess", response_model=dict)
+@app.get("/guess", response_model=dict)
 async def guess_answer(guess: str = Query(...), word: str = Query(...), category: str = Query(...)):
     try:
-        prompt = f"{guess}와 {word}가 동일한 {category}라고 생각해? 정확히 true 또는 false 둘 중 하나만 반환해."
+        prompt = f"{guess}와 {word}가 동일한 단어라고 생각해? 정확히 true 또는 false 둘 중 하나만 반환해."
         answer = get_chatgpt_response(prompt)
         return { "answer": answer }
     except HTTPException as e:
